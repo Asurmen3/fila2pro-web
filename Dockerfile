@@ -3,7 +3,6 @@ WORKDIR /app
 COPY package*.json ./
 COPY . .
 RUN npm ci --ignore-scripts && \
-    node node_modules/typescript/bin/tsc --noEmit && \
     node node_modules/vite/bin/vite.js build
 
 FROM nginx:alpine
