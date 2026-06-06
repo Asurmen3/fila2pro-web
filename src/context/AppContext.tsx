@@ -64,7 +64,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setSettings(s);
   }
 
-  useEffect(() => { refresh(); }, [refresh]);
+  useEffect(() => {
+    refresh();
+    // Polling : recharge les données toutes les 10s pour synchroniser entre appareils
+    const interval = setInterval(refresh, 10000);
+    // Recharge aussi quand l'onglet redevient actif
+    const onFocus = () => refresh();
+    window.addEventListener('focus', onFocus);
+    return () => { clearInterval(interval); window.removeEventListener('focus', onFocus); };
+  }, [refresh]);
 
   return (
     <AppContext.Provider value={{ articles, spools, spoolHistory, products, productionHistory, templates, settings, loading, refresh, refreshSpoolHistory, saveSettings }}>
