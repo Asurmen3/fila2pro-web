@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, Package, Cpu, History, ChevronRight, Layers, X } from 'lucide-react';
+import { LayoutDashboard, Package, Cpu, History, ChevronRight, Layers, X, Settings } from 'lucide-react';
 import type { Page } from '../../types';
 
 interface SidebarProps {
@@ -15,6 +15,7 @@ const navItems = [
   { id: 'stock'     as Page, label: 'Stock composants',  icon: Package },
   { id: 'products'  as Page, label: 'Produits & coûts',  icon: Cpu },
   { id: 'history'   as Page, label: 'Historique',        icon: History },
+  { id: 'settings'  as Page, label: 'Paramètres',        icon: Settings },
 ];
 
 const SidebarContent = ({ currentPage, onNavigate, onClose }: Omit<SidebarProps, 'open'>) => (

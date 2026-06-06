@@ -175,4 +175,10 @@ export interface ProductionRecord {
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
-export type Page = 'dashboard' | 'filaments' | 'stock' | 'products' | 'history';
+export type Page = 'dashboard' | 'filaments' | 'stock' | 'products' | 'history' | 'settings';
+
+export interface AppSettings {
+  kWhPrice: number;        // €/kWh
+  printerWatts: number;    // W consommés par l'imprimante
+  workshopName: string;
+}

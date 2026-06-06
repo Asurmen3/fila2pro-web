@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { LayoutDashboard, Layers, Package, Cpu, History } from 'lucide-react';
+import { LayoutDashboard, Layers, Package, Cpu, Settings } from 'lucide-react';
 import type { Page } from '../../types';
 
 interface BottomNavProps {
@@ -7,12 +7,13 @@ interface BottomNavProps {
   onNavigate: (page: Page) => void;
 }
 
+// Sur mobile on garde 5 items max — on remplace Historique par Paramètres
 const navItems = [
-  { id: 'dashboard' as Page, label: 'Accueil',    icon: LayoutDashboard },
-  { id: 'filaments' as Page, label: 'Bobines',    icon: Layers },
-  { id: 'stock'     as Page, label: 'Stock',      icon: Package },
-  { id: 'products'  as Page, label: 'Produits',   icon: Cpu },
-  { id: 'history'   as Page, label: 'Historique', icon: History },
+  { id: 'dashboard' as Page, label: 'Accueil',  icon: LayoutDashboard },
+  { id: 'filaments' as Page, label: 'Bobines',  icon: Layers },
+  { id: 'stock'     as Page, label: 'Stock',    icon: Package },
+  { id: 'products'  as Page, label: 'Produits', icon: Cpu },
+  { id: 'settings'  as Page, label: 'Réglages', icon: Settings },
 ];
 
 export default function BottomNav({ currentPage, onNavigate }: BottomNavProps) {

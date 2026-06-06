@@ -6,6 +6,7 @@ import { Plus, X, Trash2, ShoppingCart, Calculator, ChevronDown, ChevronUp, Cpu,
 import type { ProductComponent, FilamentComponent } from '../types';
 import { MATERIAL_COLORS } from '../types';
 import { readGcodeFile } from '../utils/gcodeParser';
+import { loadSettings, calcElectricityCost } from '../utils/settings';
 
 function fmt(n: number, d = 2) {
   return n.toLocaleString('fr-FR', { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -70,10 +71,12 @@ export default function Products() {
     return { spoolId: s.id!, spoolLabel: `${s.brand} ${s.material} ${s.color}`, weightGrams: c.weightGrams, pricePerGram, totalCost: pricePerGram * c.weightGrams, colorHex: s.colorHex };
   }).filter(Boolean);
 
+  const elecSettings    = loadSettings();
   const materialCost    = resolvedComponents.reduce((s, c) => s + c.totalCost, 0) + resolvedFilaments.reduce((s, c) => s + c.totalCost, 0);
   const totalMinutes    = form.printTimeMinutes + form.assemblyTimeMinutes;
   const laborCost       = (totalMinutes / 60) * form.laborCostPerHour;
-  const productionCost  = materialCost + laborCost + form.fixedCosts;
+  const elecCost        = calcElectricityCost(form.printTimeMinutes, elecSettings);
+  const productionCost  = materialCost + laborCost + elecCost + form.fixedCosts;
   const suggestedPrice  = productionCost * (1 + form.marginPercent / 100);
   const grossProfit     = suggestedPrice - productionCost;
 
@@ -404,6 +407,7 @@ export default function Products() {
                   {[
                     { label: 'Coût matière', value: materialCost, color: '#8B5CF6' },
                     { label: 'Main-d\'œuvre', value: laborCost, color: '#F59E0B' },
+                    { label: 'Électricité', value: elecCost, color: '#F59E0B' },
                     { label: 'Frais fixes', value: form.fixedCosts, color: '#64748b' },
                     { label: 'Coût de fabrication', value: productionCost, color: '#e2e8f0' },
                     { label: 'Prix de vente', value: suggestedPrice, color: '#00D9FF' },

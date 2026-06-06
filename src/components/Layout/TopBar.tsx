@@ -8,6 +8,7 @@ const pageTitles: Record<string, { title: string; subtitle: string }> = {
   stock:      { title: 'Stock composants', subtitle: 'Électronique, visserie, emballage…' },
   products:   { title: 'Produits & coûts', subtitle: 'Calcul de coûts & prix de vente' },
   history:    { title: 'Historique',       subtitle: 'Productions & fabrications passées' },
+  settings:   { title: 'Paramètres',      subtitle: 'Électricité, backup & restauration' },
 };
 
 interface TopBarProps {

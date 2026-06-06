@@ -8,6 +8,7 @@ import Filaments from './pages/Filaments';
 import Stock from './pages/Stock';
 import Products from './pages/Products';
 import History from './pages/History';
+import Settings from './pages/Settings';
 import { seedDemoData } from './db/database';
 import type { Page } from './types';
 
@@ -18,6 +19,7 @@ const pageComponents: Record<Page, PageComponent> = {
   stock:     Stock,
   products:  Products,
   history:   History,
+  settings:  Settings,
 };
 
 export default function App() {
