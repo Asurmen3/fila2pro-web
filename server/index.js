@@ -138,7 +138,7 @@ function seed() {
   }
 
   if (db.prepare('SELECT COUNT(*) as c FROM filament_spools').get().c === 0) {
-    const ins = db.prepare(`INSERT INTO filament_spools (brand,material,color,colorHex,diameter,initialWeight,currentWeight,quantity,price,supplier,location,printTempMin,printTempMax,bedTempMin,bedTempMax,notes,dateAdded) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`);
+    const ins = db.prepare(`INSERT INTO filament_spools (brand,material,color,colorHex,diameter,initialWeight,currentWeight,quantity,price,supplier,location,printTempMin,printTempMax,bedTempMin,bedTempMax,notes,dateAdded) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`);
     [
       ['Bambu Lab','PLA','Noir','#1a1a1a',1.75,1000,750,2,22,'Bambu Lab','Étagère A1',190,220,35,60,''],
       ['Bambu Lab','PLA','Blanc','#FFFFFF',1.75,1000,920,1,22,'Bambu Lab','Étagère A2',190,220,35,60,''],
