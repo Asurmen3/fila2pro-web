@@ -238,6 +238,11 @@ app.delete('/api/spools/:id', (req, res) => {
 });
 
 // ── SPOOL PRINT HISTORY ───────────────────────────────────────────────────────
+// Historique global de toutes les impressions (pour dashboard & stats)
+app.get('/api/spool-history', (_, res) => {
+  res.json(db.prepare('SELECT * FROM spool_print_history ORDER BY date DESC').all());
+});
+
 app.get('/api/spools/:id/history', (req, res) => {
   res.json(db.prepare('SELECT * FROM spool_print_history WHERE spoolId=? ORDER BY date DESC').all(req.params.id));
 });

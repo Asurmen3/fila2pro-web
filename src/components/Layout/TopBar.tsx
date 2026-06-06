@@ -7,6 +7,8 @@ const pageTitles: Record<string, { title: string; subtitle: string }> = {
   filaments:  { title: 'Bobines filament', subtitle: 'Gestion des spools & impressions' },
   stock:      { title: 'Stock composants', subtitle: 'Électronique, visserie, emballage…' },
   products:   { title: 'Produits & coûts', subtitle: 'Calcul de coûts & prix de vente' },
+  stats:      { title: 'Statistiques',     subtitle: 'Rentabilité & tendances de l\'atelier' },
+  shopping:   { title: 'Liste de courses', subtitle: 'Réapprovisionnement par fournisseur' },
   history:    { title: 'Historique',       subtitle: 'Productions & fabrications passées' },
   settings:   { title: 'Paramètres',       subtitle: 'Électricité, backup & restauration' },
 };

@@ -32,13 +32,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   const refresh = useCallback(async () => {
     try {
-      const [a, sp, pr, ph, tm, st] = await Promise.all([
+      const [a, sp, pr, ph, tm, st, sh] = await Promise.all([
         api.articles.list(),
         api.spools.list(),
         api.products.list(),
         api.history.list(),
         api.templates.list(),
         api.settings.get(),
+        api.spools.getAllHistory(),
       ]);
       setArticles(a);
       setSpools(sp);
@@ -46,6 +47,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       setProdHistory(ph);
       setTemplates(tm);
       setSettings(st);
+      setSpoolHistory(sh);
     } catch (e) {
       console.error('Failed to load data', e);
     } finally {
@@ -53,10 +55,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // Historique d'une bobine précise (vue détaillée) — ne touche pas l'état global
   async function refreshSpoolHistory(spoolId: number) {
-    const h = await api.spools.getHistory(spoolId);
-    setSpoolHistory(h);
-    return h;
+    return api.spools.getHistory(spoolId);
   }
 
   async function saveSettings(s: AppSettings) {

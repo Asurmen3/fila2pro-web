@@ -8,6 +8,8 @@ import Dashboard from './pages/Dashboard';
 import Filaments from './pages/Filaments';
 import Stock from './pages/Stock';
 import Products from './pages/Products';
+import Stats from './pages/Stats';
+import Shopping from './pages/Shopping';
 import History from './pages/History';
 import Settings from './pages/Settings';
 import type { Page } from './types';
@@ -18,6 +20,8 @@ const pageComponents: Record<Page, PageComponent> = {
   filaments: Filaments,
   stock:     Stock,
   products:  Products,
+  stats:     Stats,
+  shopping:  Shopping,
   history:   History,
   settings:  Settings,
 };

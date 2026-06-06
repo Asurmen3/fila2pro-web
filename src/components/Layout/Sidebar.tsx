@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, Package, Cpu, History, ChevronRight, Layers, X, Settings } from 'lucide-react';
+import { LayoutDashboard, Package, Cpu, History, ChevronRight, Layers, X, Settings, BarChart3, ShoppingCart } from 'lucide-react';
 import type { Page } from '../../types';
 
 interface SidebarProps {
@@ -14,6 +14,8 @@ const navItems = [
   { id: 'filaments' as Page, label: 'Bobines filament',  icon: Layers },
   { id: 'stock'     as Page, label: 'Stock composants',  icon: Package },
   { id: 'products'  as Page, label: 'Produits & coûts',  icon: Cpu },
+  { id: 'stats'     as Page, label: 'Statistiques',      icon: BarChart3 },
+  { id: 'shopping'  as Page, label: 'Liste de courses',  icon: ShoppingCart },
   { id: 'history'   as Page, label: 'Historique',        icon: History },
   { id: 'settings'  as Page, label: 'Paramètres',        icon: Settings },
 ];
@@ -66,7 +68,7 @@ const SidebarContent = ({ currentPage, onNavigate, onClose }: Omit<SidebarProps,
     </nav>
 
     <div className="px-6 py-5">
-      <div className="text-xs text-slate-600 font-medium">v2.3.0 — 2025</div>
+      <div className="text-xs text-slate-600 font-medium">v2.4.0 — 2025</div>
       <div className="text-xs text-slate-700 mt-0.5">Données centralisées NAS</div>
     </div>
   </div>

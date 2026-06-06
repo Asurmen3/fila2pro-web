@@ -175,7 +175,7 @@ export interface ProductionRecord {
 
 // ─── Navigation ───────────────────────────────────────────────────────────────
 
-export type Page = 'dashboard' | 'filaments' | 'stock' | 'products' | 'history' | 'settings';
+export type Page = 'dashboard' | 'filaments' | 'stock' | 'products' | 'stats' | 'shopping' | 'history' | 'settings';
 
 export interface AppSettings {
   kWhPrice: number;        // €/kWh

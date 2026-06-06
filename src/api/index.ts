@@ -26,6 +26,7 @@ export const spools = {
   update: (id: number, d: Partial<FilamentSpool>)       => req<FilamentSpool>(`/spools/${id}`, { method: 'PUT', body: JSON.stringify(d) }),
   delete: (id: number)         => req<{ ok: boolean }>(`/spools/${id}`, { method: 'DELETE' }),
   getHistory: (id: number)     => req<SpoolPrintHistory[]>(`/spools/${id}/history`),
+  getAllHistory: ()            => req<SpoolPrintHistory[]>('/spool-history'),
   addHistory: (id: number, d: Omit<SpoolPrintHistory, 'id' | 'spoolId'>) => req<SpoolPrintHistory>(`/spools/${id}/history`, { method: 'POST', body: JSON.stringify(d) }),
   deleteHistory: (id: number)  => req<{ ok: boolean }>(`/spools/history/${id}`, { method: 'DELETE' }),
 };

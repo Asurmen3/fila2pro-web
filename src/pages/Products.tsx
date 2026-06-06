@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import * as api from '../api';
-import { Plus, X, Trash2, ShoppingCart, Calculator, ChevronDown, ChevronUp, Cpu, Layers, FileCode } from 'lucide-react';
+import { Plus, X, Trash2, ShoppingCart, Calculator, ChevronDown, ChevronUp, Cpu, Layers, FileCode, Copy } from 'lucide-react';
 import type { ProductComponent, FilamentComponent } from '../types';
 import { MATERIAL_COLORS } from '../types';
 import { readGcodeFile } from '../utils/gcodeParser';
@@ -103,6 +103,13 @@ export default function Products() {
     await refresh();
   }
 
+  async function handleDuplicate(p: typeof products[number]) {
+    const { id, createdAt, ...rest } = p;
+    void id; void createdAt;
+    await api.products.create({ ...rest, name: `${p.name} (copie)` });
+    await refresh();
+  }
+
   const availableArticles = articles.filter(a => !form.components.some(c => c.articleId === a.id));
   const availableSpools   = spools.filter(s => !form.filamentComponents.some(f => f.spoolId === s.id));
 
@@ -143,7 +150,8 @@ export default function Products() {
                         <div className="badge" style={{ background:'rgba(0,255,136,0.1)', color:'#00FF88', border:'1px solid rgba(0,255,136,0.2)' }}>{fmt(p.marginPercent)}%</div>
                       </div>
                       <div className="flex items-center gap-2 ml-2">
-                        <button className="btn-danger py-1 px-2" onClick={e=>{e.stopPropagation();handleDelete(p.id!);}}><Trash2 size={13}/></button>
+                        <button className="btn-secondary py-1 px-2 text-xs" onClick={e=>{e.stopPropagation();handleDuplicate(p);}} title="Dupliquer"><Copy size={13}/></button>
+                        <button className="btn-danger py-1 px-2" onClick={e=>{e.stopPropagation();handleDelete(p.id!);}} title="Supprimer"><Trash2 size={13}/></button>
                         {expanded?<ChevronUp size={16} className="text-slate-500"/>:<ChevronDown size={16} className="text-slate-500"/>}
                       </div>
                     </div>

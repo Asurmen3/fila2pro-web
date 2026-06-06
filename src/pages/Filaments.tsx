@@ -4,7 +4,7 @@ import { useApp } from '../context/AppContext';
 import * as api from '../api';
 import {
   Plus, Search, X, Trash2, ChevronDown, ChevronUp,
-  Thermometer, Package, Clock, Edit3, Zap, AlertTriangle, FileCode,
+  Thermometer, Package, Clock, Edit3, Zap, AlertTriangle, FileCode, Copy,
 } from 'lucide-react';
 import type { FilamentSpool, MaterialType, SpoolPrintHistory } from '../types';
 import { MATERIALS, MATERIAL_COLORS, SPOOL_PRESET_COLORS } from '../types';
@@ -85,6 +85,13 @@ export default function Filaments() {
   async function handleDelete(id: number) {
     if (!confirm('Supprimer cette bobine ?')) return;
     await api.spools.delete(id);
+    await refresh();
+  }
+
+  async function handleDuplicate(s: FilamentSpool) {
+    const { id, dateAdded, ...rest } = s;
+    void id; void dateAdded;
+    await api.spools.create({ ...rest, currentWeight: rest.initialWeight });
     await refresh();
   }
 
@@ -251,8 +258,9 @@ export default function Filaments() {
                         <motion.button className="btn-primary py-1 px-2 text-xs flex items-center gap-1" onClick={e=>{e.stopPropagation();setConsumptionSpoolId(spool.id!);setConsumption(emptyConsumption());setGcodeMsg('');}} whileTap={{ scale:0.97 }}>
                           <Zap size={12} /> Utiliser
                         </motion.button>
-                        <button className="btn-secondary py-1 px-2 text-xs" onClick={e=>{e.stopPropagation();openEdit(spool);}}><Edit3 size={13} /></button>
-                        <button className="btn-danger py-1 px-2" onClick={e=>{e.stopPropagation();handleDelete(spool.id!);}}><Trash2 size={13} /></button>
+                        <button className="btn-secondary py-1 px-2 text-xs" onClick={e=>{e.stopPropagation();openEdit(spool);}} title="Modifier"><Edit3 size={13} /></button>
+                        <button className="btn-secondary py-1 px-2 text-xs" onClick={e=>{e.stopPropagation();handleDuplicate(spool);}} title="Dupliquer"><Copy size={13} /></button>
+                        <button className="btn-danger py-1 px-2" onClick={e=>{e.stopPropagation();handleDelete(spool.id!);}} title="Supprimer"><Trash2 size={13} /></button>
                         {expanded?<ChevronUp size={16} className="text-slate-500"/>:<ChevronDown size={16} className="text-slate-500"/>}
                       </div>
                     </div>
