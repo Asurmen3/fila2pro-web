@@ -149,9 +149,20 @@ function seed() {
     ].forEach(r => ins.run(...r, now));
   }
 
-  if (db.prepare('SELECT COUNT(*) as c FROM filament_templates').get().c === 0) {
+  {
+    // Idempotent : ajoute les modèles manquants (par marque+matériau) à chaque démarrage
+    const exists = db.prepare('SELECT 1 FROM filament_templates WHERE brand=? AND material=?');
     const ins = db.prepare(`INSERT INTO filament_templates (brand,material,printTempMin,printTempMax,bedTempMin,bedTempMax,isPreloaded) VALUES (?,?,?,?,?,?,1)`);
     [
+      ['Anycubic','PLA',190,220,50,60],
+      ['Anycubic','PLA+',200,230,55,65],
+      ['Anycubic','PETG',230,250,70,80],
+      ['Anycubic','ABS',230,270,90,100],
+      ['Anycubic','ASA',240,260,90,100],
+      ['Anycubic','TPU',210,230,40,60],
+      ['Anycubic','SILK',200,230,50,60],
+      ['Anycubic','PLA-CF',210,230,55,65],
+      ['Anycubic','PETG-CF',240,260,70,80],
       ['Bambu Lab','PLA',190,220,35,60],
       ['Bambu Lab','PETG',230,250,70,85],
       ['Bambu Lab','ABS',230,260,90,110],
@@ -164,7 +175,7 @@ function seed() {
       ['Prusament','PETG',230,250,70,90],
       ['Generic','PLA',190,220,35,60],
       ['Generic','PETG',230,250,70,85],
-    ].forEach(r => ins.run(...r));
+    ].forEach(r => { if (!exists.get(r[0], r[1])) ins.run(...r); });
   }
 }
 seed();
