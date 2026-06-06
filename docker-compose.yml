@@ -3,5 +3,10 @@ services:
     build: .
     container_name: fila2pro-web
     ports:
-      - "8080:80"        # Accessible sur http://ip-truenas:8080
+      - "8080:8080"
+    volumes:
+      - fila2pro_data:/app/data   # SQLite persisté ici
     restart: unless-stopped
+
+volumes:
+  fila2pro_data:

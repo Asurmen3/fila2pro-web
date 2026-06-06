@@ -2,11 +2,14 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
 COPY . .
-RUN npm ci --ignore-scripts && \
-    node node_modules/vite/bin/vite.js build
+RUN npm ci --ignore-scripts && node node_modules/vite/bin/vite.js build
 
-FROM nginx:alpine
-COPY --from=builder /app/dist /usr/share/nginx/html
-COPY nginx.conf /etc/nginx/conf.d/default.conf
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+FROM node:20-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --ignore-scripts --omit=dev
+COPY --from=builder /app/dist ./dist
+COPY server/ ./server/
+EXPOSE 8080
+ENV DB_PATH=/app/data/fila2pro.db
+CMD ["node", "server/index.js"]
