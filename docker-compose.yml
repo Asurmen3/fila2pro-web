@@ -14,7 +14,7 @@ services:
     image: caddy:2-alpine
     container_name: fila2pro-caddy
     ports:
-      - "8443:8443"        # Accès HTTPS : https://192.168.1.200:8443
+      - "9443:9443"        # Accès HTTPS : https://192.168.1.200:9443
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data   # Contient la CA locale (root.crt)

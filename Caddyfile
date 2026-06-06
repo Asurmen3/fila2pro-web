@@ -1,13 +1,13 @@
 # FILA2PRO — reverse proxy HTTPS via Caddy
 # Certificat local auto-généré (CA interne Caddy)
-# Accès : https://192.168.1.200:8443
+# Accès : https://192.168.1.200:9443
 
 {
 	# Désactive les redirections HTTP automatiques (on garde un port custom)
 	auto_https disable_redirects
 }
 
-https://192.168.1.200:8443 {
+https://192.168.1.200:9443 {
 	tls internal
 	reverse_proxy fila2pro:8080
 }
