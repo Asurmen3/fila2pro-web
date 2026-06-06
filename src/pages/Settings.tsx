@@ -2,13 +2,15 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import * as api from '../api';
-import { Download, Upload, Trash2, Zap, Settings2, CheckCircle } from 'lucide-react';
+import { Download, Upload, Trash2, Zap, Settings2, CheckCircle, Smartphone } from 'lucide-react';
 import type { AppSettings } from '../types';
+import { useInstallPrompt } from '../hooks/useInstallPrompt';
 
 function fmt(n: number, d = 2) { return n.toLocaleString('fr-FR', { minimumFractionDigits: d, maximumFractionDigits: d }); }
 
 export default function Settings() {
   const { settings, saveSettings, refresh } = useApp();
+  const { canInstall, installed, promptInstall } = useInstallPrompt();
   const [form, setForm]       = useState<AppSettings>(settings);
   const [saved, setSaved]     = useState(false);
   const [importing, setImporting] = useState(false);
@@ -73,6 +75,30 @@ export default function Settings() {
           style={{ background:msg.startsWith('✅')?'rgba(0,255,136,0.1)':'rgba(255,45,85,0.1)', border:`1px solid ${msg.startsWith('✅')?'rgba(0,255,136,0.3)':'rgba(255,45,85,0.3)'}`, color:msg.startsWith('✅')?'#00FF88':'#FF2D55' }}>
           {msg}
         </motion.div>
+      )}
+
+      {/* Installation PWA */}
+      {!installed && (
+        <div className="glass-card-purple p-5 neon-border-purple">
+          <div className="flex items-center gap-2 mb-3"><Smartphone size={16} style={{ color:'#8B5CF6' }} /><span className="text-sm font-bold text-white">Installer l'application</span></div>
+          <p className="text-xs text-slate-400 mb-4">Installez FILA2PRO sur votre appareil : icône sur l'écran d'accueil, plein écran, ouverture instantanée.</p>
+          {canInstall ? (
+            <motion.button className="btn-primary flex items-center gap-2 w-full justify-center" onClick={promptInstall} whileTap={{ scale:0.97 }}>
+              <Smartphone size={15} /> Installer maintenant
+            </motion.button>
+          ) : (
+            <div className="text-xs text-slate-500 rounded-lg px-3 py-2.5" style={{ background:'rgba(7,11,26,0.6)' }}>
+              <strong className="text-slate-400">Sur iPhone/iPad :</strong> bouton Partager <span style={{color:'#8B5CF6'}}>⎙</span> → « Sur l'écran d'accueil ».<br/>
+              <strong className="text-slate-400">Sur Android :</strong> menu ⋮ du navigateur → « Installer l'application ».
+            </div>
+          )}
+        </div>
+      )}
+      {installed && (
+        <div className="glass-card p-4 flex items-center gap-3" style={{ borderColor:'rgba(0,255,136,0.2)' }}>
+          <CheckCircle size={16} style={{ color:'#00FF88' }} />
+          <span className="text-sm text-slate-300">Application installée ✓</span>
+        </div>
       )}
 
       <div className="glass-card p-5">

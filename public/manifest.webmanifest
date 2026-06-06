@@ -1,0 +1,17 @@
+{
+  "name": "FILA2PRO — Atelier de fabrication",
+  "short_name": "FILA2PRO",
+  "description": "Gestion des coûts de fabrication : filaments 3D, stock, produits et rentabilité.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#070B1A",
+  "theme_color": "#070B1A",
+  "lang": "fr",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
