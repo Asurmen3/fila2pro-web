@@ -3,10 +3,27 @@ services:
     build: .
     container_name: fila2pro-web
     ports:
-      - "8080:8080"
+      - "8080:8080"        # Accès HTTP direct (fallback)
+    expose:
+      - "8080"             # Accessible par Caddy sur le réseau interne
     volumes:
-      - fila2pro_data:/app/data   # SQLite persisté ici
+      - fila2pro_data:/app/data
     restart: unless-stopped
+
+  caddy:
+    image: caddy:2-alpine
+    container_name: fila2pro-caddy
+    ports:
+      - "8443:8443"        # Accès HTTPS : https://192.168.1.200:8443
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data   # Contient la CA locale (root.crt)
+      - caddy_config:/config
+    restart: unless-stopped
+    depends_on:
+      - fila2pro
 
 volumes:
   fila2pro_data:
+  caddy_data:
+  caddy_config:
