@@ -5,6 +5,8 @@
 {
 	# Désactive les redirections HTTP automatiques (on garde un port custom)
 	auto_https disable_redirects
+	# SNI par défaut : indispensable car les connexions vers une IP n'envoient pas de SNI
+	default_sni 192.168.1.200
 }
 
 https://192.168.1.200:9443 {
