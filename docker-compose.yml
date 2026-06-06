@@ -1,0 +1,7 @@
+services:
+  fila2pro:
+    build: .
+    container_name: fila2pro-web
+    ports:
+      - "8080:80"        # Accessible sur http://ip-truenas:8080
+    restart: unless-stopped
