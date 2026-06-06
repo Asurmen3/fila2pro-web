@@ -36,6 +36,7 @@ export default function Filaments() {
   const [consumptionSpoolId, setConsumptionSpoolId] = useState<number | null>(null);
   const [consumption, setConsumption] = useState(emptyConsumption());
   const [gcodeLoading, setGcodeLoading] = useState(false);
+  const [gcodeMsg, setGcodeMsg] = useState('');
   const gcodeInputRef = useRef<HTMLInputElement>(null);
 
   // Load history when spool is expanded
@@ -128,10 +129,28 @@ export default function Filaments() {
 
   async function handleGcodeImport(file: File) {
     setGcodeLoading(true);
+    setGcodeMsg('');
     try {
       const data = await readGcodeFile(file);
-      setConsumption(prev => ({ ...prev, weightUsed: data.filamentGrams ?? prev.weightUsed, durationMinutes: data.printTimeMinutes ?? prev.durationMinutes }));
-    } finally { setGcodeLoading(false); }
+      setConsumption(prev => ({
+        ...prev,
+        projectName: prev.projectName || file.name.replace(/\.(gcode|gco|gc|g)$/i, ''),
+        weightUsed: data.filamentGrams ?? prev.weightUsed,
+        durationMinutes: data.printTimeMinutes ?? prev.durationMinutes,
+      }));
+      const parts: string[] = [];
+      if (data.filamentGrams) parts.push(`${data.filamentGrams} g`);
+      if (data.printTimeMinutes) parts.push(`${data.printTimeMinutes} min`);
+      if (parts.length === 0) {
+        setGcodeMsg(`⚠️ Aucune donnée trouvée dans ce G-code${data.slicerName ? ` (${data.slicerName})` : ''}. Saisie manuelle.`);
+      } else {
+        setGcodeMsg(`✅ ${data.slicerName ?? 'G-code'} : ${parts.join(' · ')} détecté${parts.length > 1 ? 's' : ''}`);
+      }
+    } catch {
+      setGcodeMsg('❌ Erreur de lecture du fichier');
+    } finally {
+      setGcodeLoading(false);
+    }
   }
 
   return (
@@ -229,7 +248,7 @@ export default function Filaments() {
                         <div><div className="text-xs text-slate-500">∅ {spool.diameter}mm</div><div className="text-xs text-slate-400">{spool.location||'—'}</div></div>
                       </div>
                       <div className="flex items-center gap-2 ml-2 flex-shrink-0">
-                        <motion.button className="btn-primary py-1 px-2 text-xs flex items-center gap-1" onClick={e=>{e.stopPropagation();setConsumptionSpoolId(spool.id!);setConsumption(emptyConsumption());}} whileTap={{ scale:0.97 }}>
+                        <motion.button className="btn-primary py-1 px-2 text-xs flex items-center gap-1" onClick={e=>{e.stopPropagation();setConsumptionSpoolId(spool.id!);setConsumption(emptyConsumption());setGcodeMsg('');}} whileTap={{ scale:0.97 }}>
                           <Zap size={12} /> Utiliser
                         </motion.button>
                         <button className="btn-secondary py-1 px-2 text-xs" onClick={e=>{e.stopPropagation();openEdit(spool);}}><Edit3 size={13} /></button>
@@ -379,9 +398,10 @@ export default function Filaments() {
                   <button onClick={()=>setConsumptionSpoolId(null)} className="text-slate-500 hover:text-white"><X size={18}/></button>
                 </div>
                 <input ref={gcodeInputRef} type="file" accept=".gcode,.gc,.g,.gco" className="hidden" onChange={e=>{if(e.target.files?.[0])handleGcodeImport(e.target.files[0]);}}/>
-                <motion.button className="w-full flex items-center justify-center gap-2 mb-4 py-2.5 rounded-xl text-sm font-semibold" style={{ background:'rgba(139,92,246,0.1)', border:'1px dashed rgba(139,92,246,0.4)', color:'#8B5CF6' }} onClick={()=>gcodeInputRef.current?.click()} whileTap={{ scale:0.97 }} disabled={gcodeLoading}>
+                <motion.button className="w-full flex items-center justify-center gap-2 mb-2 py-2.5 rounded-xl text-sm font-semibold" style={{ background:'rgba(139,92,246,0.1)', border:'1px dashed rgba(139,92,246,0.4)', color:'#8B5CF6' }} onClick={()=>gcodeInputRef.current?.click()} whileTap={{ scale:0.97 }} disabled={gcodeLoading}>
                   <FileCode size={16}/>{gcodeLoading?'Lecture du G-code…':'Importer un fichier G-code'}
                 </motion.button>
+                {gcodeMsg && <div className="text-xs mb-3 px-3 py-2 rounded-lg" style={{ background:'rgba(7,11,26,0.6)', color: gcodeMsg.startsWith('✅')?'#00FF88':gcodeMsg.startsWith('⚠️')?'#FF8C00':'#FF2D55' }}>{gcodeMsg}</div>}
                 <div className="space-y-3">
                   <div><label className="label">Projet</label><input className="input-field" placeholder="ex: Lampe Dragon Ball" value={consumption.projectName} onChange={e=>setConsumption(p=>({...p,projectName:e.target.value}))}/></div>
                   <div><label className="label">Imprimante</label><input className="input-field" placeholder="ex: Bambu Lab X1C" value={consumption.printerName} onChange={e=>setConsumption(p=>({...p,printerName:e.target.value}))}/></div>

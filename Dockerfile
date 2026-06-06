@@ -13,4 +13,4 @@ COPY --from=builder /app/dist ./dist
 COPY server/ ./server/
 EXPOSE 8080
 ENV DB_PATH=/app/data/fila2pro.db
-CMD ["node", "server/index.js"]
+CMD ["node", "server/index.cjs"]

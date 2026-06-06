@@ -34,7 +34,7 @@ function AppInner() {
     <div className="min-h-screen" style={{ background: '#070B1A' }}>
       <Sidebar currentPage={currentPage} onNavigate={navigate} open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="md:ml-64 flex flex-col min-h-screen">
-        <TopBar currentPage={currentPage} onMenuClick={() => setSidebarOpen(true)} />
+        <TopBar currentPage={currentPage} onMenuClick={() => setSidebarOpen(true)} onNavigate={navigate} />
         <main className="flex-1 p-3 sm:p-4 md:p-6 overflow-auto pb-20 md:pb-6">
           <AnimatePresence mode="wait">
             <motion.div key={currentPage}
