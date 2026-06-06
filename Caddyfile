@@ -1,15 +1,14 @@
 # FILA2PRO — reverse proxy HTTPS via Caddy
 # Certificat local auto-généré (CA interne Caddy)
-# Accès : https://192.168.1.200:9443
+# Accès : https://192.168.1.200.nip.io:9443
+# nip.io résout automatiquement ce nom vers 192.168.1.200 (DNS gratuit, aucune config)
+# Un vrai nom d'hôte est nécessaire car le TLS/SNI ne fonctionne pas avec une IP nue.
 
 {
-	# Désactive les redirections HTTP automatiques (on garde un port custom)
 	auto_https disable_redirects
-	# SNI par défaut : indispensable car les connexions vers une IP n'envoient pas de SNI
-	default_sni 192.168.1.200
 }
 
-https://192.168.1.200:9443 {
+https://192.168.1.200.nip.io:9443 {
 	tls internal
 	reverse_proxy fila2pro:8080
 }
