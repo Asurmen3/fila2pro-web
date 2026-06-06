@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/database';
-import { Plus, X, Trash2, ShoppingCart, Calculator, ChevronDown, ChevronUp, Cpu, Layers } from 'lucide-react';
+import { Plus, X, Trash2, ShoppingCart, Calculator, ChevronDown, ChevronUp, Cpu, Layers, FileCode } from 'lucide-react';
 import type { ProductComponent, FilamentComponent } from '../types';
 import { MATERIAL_COLORS } from '../types';
+import { readGcodeFile } from '../utils/gcodeParser';
 
 function fmt(n: number, d = 2) {
   return n.toLocaleString('fr-FR', { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -38,6 +39,22 @@ export default function Products() {
   const [form, setForm]           = useState<ProductForm>(emptyForm());
   const [saving, setSaving]       = useState(false);
   const [expandedId, setExpandedId] = useState<number | null>(null);
+  const [gcodeLoading, setGcodeLoading] = useState(false);
+  const gcodeInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleGcodeImport(file: File) {
+    setGcodeLoading(true);
+    try {
+      const data = await readGcodeFile(file);
+      setForm(prev => ({
+        ...prev,
+        printTimeMinutes: data.printTimeMinutes ?? prev.printTimeMinutes,
+        name: prev.name || file.name.replace('.gcode', '').replace('.gc', ''),
+      }));
+    } finally {
+      setGcodeLoading(false);
+    }
+  }
 
   // Resolve components for cost calculation
   const resolvedComponents: ProductComponent[] = form.components.map(c => {
@@ -252,13 +269,26 @@ export default function Products() {
               style={{ maxHeight: '92vh', borderRadius: '20px 20px 0 0' }}
               initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}>
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center justify-between mb-4">
                 <div>
                   <h2 className="text-lg font-bold text-white" style={{ fontFamily: 'Space Grotesk' }}>Nouveau produit</h2>
                   <p className="text-xs text-slate-500 mt-0.5">Filaments + composants → coût de revient complet</p>
                 </div>
                 <button onClick={() => setShowForm(false)} className="text-slate-500 hover:text-white"><X size={20} /></button>
               </div>
+
+              {/* G-code import */}
+              <input ref={gcodeInputRef} type="file" accept=".gcode,.gc,.g,.gco" className="hidden"
+                onChange={e => { if (e.target.files?.[0]) handleGcodeImport(e.target.files[0]); }} />
+              <motion.button
+                className="w-full flex items-center justify-center gap-2 mb-5 py-2.5 rounded-xl text-sm font-semibold transition-all"
+                style={{ background: 'rgba(139,92,246,0.08)', border: '1px dashed rgba(139,92,246,0.35)', color: '#8B5CF6' }}
+                onClick={() => gcodeInputRef.current?.click()}
+                whileTap={{ scale: 0.97 }}
+                disabled={gcodeLoading}>
+                <FileCode size={16} />
+                {gcodeLoading ? 'Lecture du G-code…' : 'Importer un G-code — remplissage automatique (temps, nom)'}
+              </motion.button>
 
               <div className="grid grid-cols-2 gap-4 mb-5">
                 <div className="col-span-2">

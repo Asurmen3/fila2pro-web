@@ -1,13 +1,14 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db/database';
 import {
   Plus, Search, X, Trash2, ChevronDown, ChevronUp,
-  Thermometer, Package, Clock, Edit3, Zap, AlertTriangle,
+  Thermometer, Package, Clock, Edit3, Zap, AlertTriangle, FileCode,
 } from 'lucide-react';
-import type { FilamentSpool, MaterialType, SpoolPrintHistory } from '../types';
+import type { FilamentSpool, MaterialType } from '../types';
 import { MATERIALS, MATERIAL_COLORS, SPOOL_PRESET_COLORS } from '../types';
+import { readGcodeFile } from '../utils/gcodeParser';
 
 function fmt(n: number, d = 1) {
   return n.toLocaleString('fr-FR', { minimumFractionDigits: d, maximumFractionDigits: d });
@@ -40,6 +41,22 @@ export default function Filaments() {
   // Consumption dialog
   const [consumptionSpoolId, setConsumptionSpoolId] = useState<number | null>(null);
   const [consumption, setConsumption] = useState(emptyConsumption());
+  const [gcodeLoading, setGcodeLoading] = useState(false);
+  const gcodeInputRef = useRef<HTMLInputElement>(null);
+
+  async function handleGcodeImport(file: File) {
+    setGcodeLoading(true);
+    try {
+      const data = await readGcodeFile(file);
+      setConsumption(prev => ({
+        ...prev,
+        weightUsed: data.filamentGrams ?? prev.weightUsed,
+        durationMinutes: data.printTimeMinutes ?? prev.durationMinutes,
+      }));
+    } finally {
+      setGcodeLoading(false);
+    }
+  }
 
   // Print history per spool (loaded on demand)
   const spoolHistory = useLiveQuery(
@@ -499,13 +516,27 @@ export default function Filaments() {
                 const spool = spools.find(s => s.id === consumptionSpoolId);
                 return (
                   <>
-                    <div className="flex items-center justify-between mb-5">
+                    <div className="flex items-center justify-between mb-4">
                       <div>
                         <h2 className="text-base font-bold text-white">Enregistrer une impression</h2>
                         <p className="text-xs text-slate-500 mt-0.5">{spool?.brand} {spool?.material} {spool?.color} — {spool?.currentWeight}g restants</p>
                       </div>
                       <button onClick={() => setConsumptionSpoolId(null)} className="text-slate-500 hover:text-white"><X size={18} /></button>
                     </div>
+
+                    {/* G-code import */}
+                    <input ref={gcodeInputRef} type="file" accept=".gcode,.gc,.g,.gco" className="hidden"
+                      onChange={e => { if (e.target.files?.[0]) handleGcodeImport(e.target.files[0]); }} />
+                    <motion.button
+                      className="w-full flex items-center justify-center gap-2 mb-4 py-2.5 rounded-xl text-sm font-semibold transition-all"
+                      style={{ background: 'rgba(139,92,246,0.1)', border: '1px dashed rgba(139,92,246,0.4)', color: '#8B5CF6' }}
+                      onClick={() => gcodeInputRef.current?.click()}
+                      whileTap={{ scale: 0.97 }}
+                      disabled={gcodeLoading}>
+                      <FileCode size={16} />
+                      {gcodeLoading ? 'Lecture du G-code…' : 'Importer un fichier G-code (auto-remplissage)'}
+                    </motion.button>
+
                     <div className="space-y-3">
                       <div>
                         <label className="label">Projet</label>
