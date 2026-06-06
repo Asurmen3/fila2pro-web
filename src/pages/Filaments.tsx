@@ -19,7 +19,7 @@ function fmtDate(d: Date) {
 
 const emptyForm = (): Omit<FilamentSpool, 'id' | 'dateAdded'> => ({
   brand: '', material: 'PLA', color: 'Noir', colorHex: '#1a1a1a',
-  diameter: 1.75, initialWeight: 1000, currentWeight: 1000,
+  diameter: 1.75, initialWeight: 1000, currentWeight: 1000, quantity: 1,
   price: 0, supplier: '', location: '',
   printTempMin: 190, printTempMax: 220, bedTempMin: 35, bedTempMax: 60, notes: '',
 });
@@ -97,7 +97,7 @@ export default function Filaments() {
   }
 
   function openEdit(s: FilamentSpool) {
-    setForm({ brand: s.brand, material: s.material, color: s.color, colorHex: s.colorHex, diameter: s.diameter, initialWeight: s.initialWeight, currentWeight: s.currentWeight, price: s.price, supplier: s.supplier, location: s.location, printTempMin: s.printTempMin, printTempMax: s.printTempMax, bedTempMin: s.bedTempMin, bedTempMax: s.bedTempMax, notes: s.notes });
+    setForm({ brand: s.brand, material: s.material, color: s.color, colorHex: s.colorHex, diameter: s.diameter, initialWeight: s.initialWeight, currentWeight: s.currentWeight, quantity: s.quantity ?? 1, price: s.price, supplier: s.supplier, location: s.location, printTempMin: s.printTempMin, printTempMax: s.printTempMax, bedTempMin: s.bedTempMin, bedTempMax: s.bedTempMax, notes: s.notes });
     setEditingId(s.id!);
     setShowForm(true);
   }
@@ -125,7 +125,17 @@ export default function Filaments() {
     const spool = spools.find(s => s.id === consumptionSpoolId);
     if (!spool || consumption.weightUsed <= 0) return;
     const newWeight = Math.max(0, spool.currentWeight - consumption.weightUsed);
-    await db.filamentSpools.update(consumptionSpoolId!, { currentWeight: newWeight });
+    const qty = spool.quantity ?? 1;
+
+    // Si la bobine est épuisée et qu'il en reste d'autres → ouvrir la suivante
+    if (newWeight === 0 && qty > 1) {
+      await db.filamentSpools.update(consumptionSpoolId!, {
+        currentWeight: spool.initialWeight,
+        quantity: qty - 1,
+      });
+    } else {
+      await db.filamentSpools.update(consumptionSpoolId!, { currentWeight: newWeight, quantity: qty });
+    }
     await db.spoolPrintHistory.add({
       spoolId: consumptionSpoolId!,
       projectName: consumption.projectName,
@@ -238,6 +248,11 @@ export default function Filaments() {
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="text-sm font-bold text-white">{spool.brand} — {spool.color}</span>
                           <span className="badge" style={{ background: matColor + '18', color: matColor, border: `1px solid ${matColor}30` }}>{spool.material}</span>
+                          {(spool.quantity ?? 1) > 1 && (
+                            <span className="badge font-black" style={{ background: 'rgba(0,217,255,0.15)', color: '#00D9FF', border: '1px solid rgba(0,217,255,0.4)', fontSize: '0.75rem' }}>
+                              ×{spool.quantity}
+                            </span>
+                          )}
                           {isLow && <span className="badge" style={{ background: 'rgba(255,140,0,0.15)', color: '#FF8C00', border: '1px solid rgba(255,140,0,0.3)' }}>Stock faible</span>}
                         </div>
                         {/* Weight bar */}
@@ -445,6 +460,10 @@ export default function Filaments() {
                   </select>
                 </div>
                 <div>
+                  <label className="label">Nombre de bobines</label>
+                  <input className="input-field" type="number" step="1" min="1" value={form.quantity || 1} onChange={e => setField('quantity', parseInt(e.target.value) || 1)} />
+                </div>
+                <div>
                   <label className="label">Prix d'achat (€)</label>
                   <input className="input-field" type="number" step="0.01" min="0" value={form.price || ''} onChange={e => setField('price', parseFloat(e.target.value) || 0)} />
                 </div>
@@ -519,7 +538,10 @@ export default function Filaments() {
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <h2 className="text-base font-bold text-white">Enregistrer une impression</h2>
-                        <p className="text-xs text-slate-500 mt-0.5">{spool?.brand} {spool?.material} {spool?.color} — {spool?.currentWeight}g restants</p>
+                        <p className="text-xs text-slate-500 mt-0.5">
+                          {spool?.brand} {spool?.material} {spool?.color} — {spool?.currentWeight}g restants
+                          {(spool?.quantity ?? 1) > 1 && <span style={{ color: '#00D9FF' }}> · ×{spool?.quantity} bobines</span>}
+                        </p>
                       </div>
                       <button onClick={() => setConsumptionSpoolId(null)} className="text-slate-500 hover:text-white"><X size={18} /></button>
                     </div>

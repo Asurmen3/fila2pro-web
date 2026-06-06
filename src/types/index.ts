@@ -81,6 +81,7 @@ export interface FilamentSpool {
   diameter: 1.75 | 2.85;
   initialWeight: number;
   currentWeight: number;
+  quantity: number;        // nombre de bobines identiques en stock
   price: number;
   supplier: string;
   location: string;

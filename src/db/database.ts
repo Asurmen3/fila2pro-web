@@ -14,7 +14,7 @@ export class AppDatabase extends Dexie {
 
   constructor() {
     super('Fila2ProDB');
-    this.version(2).stores({
+    this.version(3).stores({
       articles: '++id, name, category, supplier, createdAt',
       products: '++id, name, createdAt',
       productionHistory: '++id, productName, date',
@@ -47,12 +47,12 @@ export async function seedDemoData() {
   if (spoolCount === 0) {
     const now = new Date();
     await db.filamentSpools.bulkAdd([
-      { brand: 'Bambu Lab', material: 'PLA', color: 'Noir', colorHex: '#1a1a1a', diameter: 1.75, initialWeight: 1000, currentWeight: 750, price: 22, supplier: 'Bambu Lab', location: 'Étagère A1', printTempMin: 190, printTempMax: 220, bedTempMin: 35, bedTempMax: 60, notes: '', dateAdded: now },
-      { brand: 'Bambu Lab', material: 'PLA', color: 'Blanc', colorHex: '#FFFFFF', diameter: 1.75, initialWeight: 1000, currentWeight: 920, price: 22, supplier: 'Bambu Lab', location: 'Étagère A2', printTempMin: 190, printTempMax: 220, bedTempMin: 35, bedTempMax: 60, notes: '', dateAdded: now },
-      { brand: 'eSUN', material: 'PETG', color: 'Transparent', colorHex: '#E2E8F020', diameter: 1.75, initialWeight: 1000, currentWeight: 340, price: 19.9, supplier: 'Amazon', location: 'Étagère B1', printTempMin: 230, printTempMax: 250, bedTempMin: 70, bedTempMax: 85, notes: 'Sécher avant impression', dateAdded: now },
-      { brand: 'Polymaker', material: 'ABS', color: 'Rouge', colorHex: '#E53E3E', diameter: 1.75, initialWeight: 1000, currentWeight: 180, price: 21, supplier: 'Polymaker', location: 'Étagère B2', printTempMin: 230, printTempMax: 260, bedTempMin: 90, bedTempMax: 110, notes: 'Boîte fermée requise', dateAdded: now },
-      { brand: 'SainSmart', material: 'TPU', color: 'Noir', colorHex: '#1a1a1a', diameter: 1.75, initialWeight: 500, currentWeight: 500, price: 18, supplier: 'Amazon', location: 'Étagère C1', printTempMin: 220, printTempMax: 240, bedTempMin: 30, bedTempMax: 60, notes: '', dateAdded: now },
-      { brand: 'Bambu Lab', material: 'SILK', color: 'Or', colorHex: '#FFD700', diameter: 1.75, initialWeight: 1000, currentWeight: 680, price: 26, supplier: 'Bambu Lab', location: 'Étagère A3', printTempMin: 195, printTempMax: 230, bedTempMin: 35, bedTempMax: 60, notes: '', dateAdded: now },
+      { brand: 'Bambu Lab', material: 'PLA', color: 'Noir', colorHex: '#1a1a1a', diameter: 1.75, initialWeight: 1000, currentWeight: 750, quantity: 2, price: 22, supplier: 'Bambu Lab', location: 'Étagère A1', printTempMin: 190, printTempMax: 220, bedTempMin: 35, bedTempMax: 60, notes: '', dateAdded: now },
+      { brand: 'Bambu Lab', material: 'PLA', color: 'Blanc', colorHex: '#FFFFFF', diameter: 1.75, initialWeight: 1000, currentWeight: 920, quantity: 1, price: 22, supplier: 'Bambu Lab', location: 'Étagère A2', printTempMin: 190, printTempMax: 220, bedTempMin: 35, bedTempMax: 60, notes: '', dateAdded: now },
+      { brand: 'eSUN', material: 'PETG', color: 'Transparent', colorHex: '#E2E8F020', diameter: 1.75, initialWeight: 1000, currentWeight: 340, quantity: 1, price: 19.9, supplier: 'Amazon', location: 'Étagère B1', printTempMin: 230, printTempMax: 250, bedTempMin: 70, bedTempMax: 85, notes: 'Sécher avant impression', dateAdded: now },
+      { brand: 'Polymaker', material: 'ABS', color: 'Rouge', colorHex: '#E53E3E', diameter: 1.75, initialWeight: 1000, currentWeight: 180, quantity: 1, price: 21, supplier: 'Polymaker', location: 'Étagère B2', printTempMin: 230, printTempMax: 260, bedTempMin: 90, bedTempMax: 110, notes: 'Boîte fermée requise', dateAdded: now },
+      { brand: 'SainSmart', material: 'TPU', color: 'Noir', colorHex: '#1a1a1a', diameter: 1.75, initialWeight: 500, currentWeight: 500, quantity: 3, price: 18, supplier: 'Amazon', location: 'Étagère C1', printTempMin: 220, printTempMax: 240, bedTempMin: 30, bedTempMax: 60, notes: '', dateAdded: now },
+      { brand: 'Bambu Lab', material: 'SILK', color: 'Or', colorHex: '#FFD700', diameter: 1.75, initialWeight: 1000, currentWeight: 680, quantity: 1, price: 26, supplier: 'Bambu Lab', location: 'Étagère A3', printTempMin: 195, printTempMax: 230, bedTempMin: 35, bedTempMax: 60, notes: '', dateAdded: now },
     ]);
   }
 
