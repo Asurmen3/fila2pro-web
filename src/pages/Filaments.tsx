@@ -232,11 +232,18 @@ export default function Filaments() {
         <div className="space-y-2">
           <AnimatePresence>
             {filtered.map((spool, i) => {
-              const pct = spool.initialWeight > 0 ? (spool.currentWeight/spool.initialWeight)*100 : 0;
+              const qty = spool.quantity ?? 1;
+              // Total restant sur TOUTES les bobines de ce matériau (en cours + secours)
+              const totalRemaining = spool.currentWeight + Math.max(0, qty - 1) * spool.initialWeight;
+              const totalCapacity  = qty * spool.initialWeight;
+              const pct = totalCapacity > 0 ? (totalRemaining/totalCapacity)*100 : 0;
               const matColor = MATERIAL_COLORS[spool.material];
-              const isLow = spool.currentWeight < 200;
+              // Stock faible = peu de matière au total ET pas de bobine de secours
+              const isLow = totalRemaining < 200;
               const expanded = expandedId === spool.id;
               const pricePerGram = spool.initialWeight > 0 ? spool.price/spool.initialWeight : 0;
+              // Format poids : kg si ≥ 1000g, sinon g
+              const wfmt = (g: number) => g >= 1000 ? `${fmt(g/1000, 2)} kg` : `${fmt(g, 0)} g`;
               return (
                 <motion.div key={spool.id} initial={{ opacity:0, y:12 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0 }} transition={{ delay:i*0.04 }}>
                   <div className="glass-card overflow-hidden">
@@ -257,7 +264,7 @@ export default function Filaments() {
                             <div className="h-full rounded-full transition-all" style={{ width:`${pct}%`, background:isLow?'#FF8C00':matColor, boxShadow:`0 0 6px ${isLow?'#FF8C00':matColor}60` }} />
                           </div>
                           <span className="text-xs font-semibold whitespace-nowrap" style={{ color:isLow?'#FF8C00':matColor }}>
-                            {fmt(spool.currentWeight,0)}g / {fmt(spool.initialWeight,0)}g
+                            {wfmt(totalRemaining)} / {wfmt(totalCapacity)}
                           </span>
                         </div>
                       </div>
