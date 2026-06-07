@@ -1,6 +1,7 @@
 // Service Worker FILA2PRO — cache de l'app shell, réseau-d'abord pour l'API
-const CACHE = 'fila2pro-v1';
-const APP_SHELL = ['/', '/index.html', '/manifest.webmanifest', '/icon-192.png', '/icon-512.png'];
+// ⚠️ Incrémenter CACHE à chaque déploiement force la mise à jour sur les appareils.
+const CACHE = 'fila2pro-v3';
+const APP_SHELL = ['/manifest.webmanifest', '/icon-192.png', '/icon-512.png'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(APP_SHELL)).then(() => self.skipWaiting()));

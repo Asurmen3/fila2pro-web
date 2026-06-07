@@ -1,6 +1,7 @@
 node_modules/
 dist/
 server/data/
+server/mock-local.cjs
 *.db
 *.db-shm
 *.db-wal
