@@ -54,8 +54,12 @@ export default function Filaments() {
       && (filterMat === 'Tous' || s.material === filterMat);
   });
 
-  const totalWeight = spools.reduce((s, sp) => s + sp.currentWeight, 0);
-  const lowStock    = spools.filter(s => s.currentWeight < 200);
+  // Poids total = bobine en cours + (quantité - 1) bobines pleines de secours
+  const totalWeight = spools.reduce((s, sp) => s + sp.currentWeight + Math.max(0, (sp.quantity ?? 1) - 1) * sp.initialWeight, 0);
+  // Nombre réel de bobines physiques (compte la quantité)
+  const totalSpoolCount = spools.reduce((s, sp) => s + (sp.quantity ?? 1), 0);
+  // Stock faible = peu de matière ET pas de bobine de secours
+  const lowStock    = spools.filter(s => s.currentWeight < 200 && (s.quantity ?? 1) <= 1);
   const usedMaterials = [...new Set(spools.map(s => s.material))];
 
   function setField<K extends keyof ReturnType<typeof emptyForm>>(k: K, v: ReturnType<typeof emptyForm>[K]) {
@@ -165,7 +169,7 @@ export default function Filaments() {
       {/* Stats */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {[
-          { label:'Bobines en stock',     value:spools.length,                              color:'#00D9FF' },
+          { label:'Bobines en stock',     value:totalSpoolCount,                            color:'#00D9FF' },
           { label:'Stock faible (<200g)', value:lowStock.length,                            color:lowStock.length>0?'#FF8C00':'#00FF88' },
           { label:'Poids total',          value:`${fmt(totalWeight/1000,2)} kg`,            color:'#8B5CF6' },
           { label:'Matériaux',            value:usedMaterials.length,                       color:'#00FF88' },

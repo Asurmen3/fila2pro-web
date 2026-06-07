@@ -16,8 +16,11 @@ export default function Dashboard() {
   const stockValue        = articles.reduce((s, a) => s + a.stockRemaining * a.unitPrice, 0);
   const totalMaterialCost = productionHistory.reduce((s, h) => s + h.materialCost, 0);
   const avgMargin         = productionHistory.length > 0 ? productionHistory.reduce((s, h) => s + h.marginPercent, 0) / productionHistory.length : 0;
-  const totalFilamentWeight = spools.reduce((s, sp) => s + sp.currentWeight, 0);
-  const lowStockSpools    = spools.filter(s => s.currentWeight < 200);
+  // Poids total = bobine en cours + (quantité - 1) bobines pleines de secours
+  const totalFilamentWeight = spools.reduce((s, sp) => s + sp.currentWeight + Math.max(0, (sp.quantity ?? 1) - 1) * sp.initialWeight, 0);
+  // Nombre réel de bobines physiques (compte la quantité)
+  const totalSpoolCount     = spools.reduce((s, sp) => s + (sp.quantity ?? 1), 0);
+  const lowStockSpools    = spools.filter(s => s.currentWeight < 200 && (s.quantity ?? 1) <= 1);
   const lowStockArticles  = articles.filter(a => a.alertThreshold && a.stockRemaining <= a.alertThreshold);
   const allAlerts         = [...lowStockSpools.map(s => `${s.brand} ${s.material} (${s.currentWeight}g)`), ...lowStockArticles.map(a => `${a.name} (${a.stockRemaining} ${a.unit})`)];
   const thirtyDaysAgo     = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
@@ -33,7 +36,7 @@ export default function Dashboard() {
   const matPie = Array.from(matMap.entries()).map(([name, value]) => ({ name, value: +value.toFixed(0) }));
 
   const filamentCards = [
-    { label: 'Bobines en stock',     value: spools.length.toString(),                color: '#00D9FF' },
+    { label: 'Bobines en stock',     value: totalSpoolCount.toString(),              color: '#00D9FF' },
     { label: 'Poids total filament', value: `${fmt(totalFilamentWeight / 1000, 2)} kg`, color: '#8B5CF6' },
     { label: 'Stock faible (<200g)', value: lowStockSpools.length.toString(),         color: lowStockSpools.length > 0 ? '#FF8C00' : '#00FF88' },
     { label: 'Consommé (30 jours)',  value: `${fmt(consumption30d, 0)} g`,            color: '#F59E0B' },
