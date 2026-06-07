@@ -8,6 +8,9 @@ services:
       - "8080"             # Accessible par Caddy sur le réseau interne
     volumes:
       - fila2pro_data:/app/data
+      - ./backups:/app/backups   # Sauvegardes auto accessibles sur TrueNAS
+    environment:
+      - BACKUP_DIR=/app/backups
     restart: unless-stopped
 
   caddy:

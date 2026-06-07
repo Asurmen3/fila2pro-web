@@ -105,6 +105,15 @@ export default function Filaments() {
     await refresh();
   }
 
+  // Réapprovisionnement : +1 bobine pleine du même type
+  async function handleRestock(s: FilamentSpool) {
+    const newQty = (s.quantity ?? 1) + 1;
+    // Si la bobine en cours est vide, on ouvre directement la nouvelle
+    const newCurrent = s.currentWeight <= 0 ? s.initialWeight : s.currentWeight;
+    await api.spools.update(s.id!, { ...s, quantity: newQty, currentWeight: newCurrent });
+    await refresh();
+  }
+
   async function handleConsumption() {
     const spool = spools.find(s => s.id === consumptionSpoolId);
     if (!spool || consumption.weightUsed <= 0) return;
@@ -276,6 +285,7 @@ export default function Filaments() {
                         <motion.button className="btn-primary py-1 px-2 text-xs flex items-center gap-1" onClick={e=>{e.stopPropagation();setConsumptionSpoolId(spool.id!);setConsumption(emptyConsumption());setGcodeMsg('');}} whileTap={{ scale:0.97 }}>
                           <Zap size={12} /> Utiliser
                         </motion.button>
+                        <button className="btn-secondary py-1 px-2 text-xs font-bold" onClick={e=>{e.stopPropagation();handleRestock(spool);}} title="Ajouter une bobine (réappro)" style={{ color:'#00FF88', borderColor:'rgba(0,255,136,0.3)', background:'rgba(0,255,136,0.08)' }}>+1</button>
                         <button className="btn-secondary py-1 px-2 text-xs" onClick={e=>{e.stopPropagation();openEdit(spool);}} title="Modifier"><Edit3 size={13} /></button>
                         <button className="btn-secondary py-1 px-2 text-xs" onClick={e=>{e.stopPropagation();handleDuplicate(spool);}} title="Dupliquer"><Copy size={13} /></button>
                         <button className="btn-danger py-1 px-2" onClick={e=>{e.stopPropagation();handleDelete(spool.id!);}} title="Supprimer"><Trash2 size={13} /></button>

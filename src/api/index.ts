@@ -57,7 +57,10 @@ export const settings = {
 };
 
 // ── Backup / Restore ──────────────────────────────────────────────────────────
+export interface BackupFile { name: string; size: number; date: string }
 export const backup = {
   export: () => req<object>('/backup'),
   restore: (data: object) => req<{ ok: boolean }>('/restore', { method: 'POST', body: JSON.stringify(data) }),
+  list: () => req<{ dir: string; count: number; files: BackupFile[] }>('/backups'),
+  runNow: () => req<{ ok: boolean }>('/backups/run', { method: 'POST' }),
 };

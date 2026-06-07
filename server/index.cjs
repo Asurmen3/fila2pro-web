@@ -324,7 +324,7 @@ app.put('/api/settings', (req, res) => {
 });
 
 // ── BACKUP & RESTORE ──────────────────────────────────────────────────────────
-app.get('/api/backup', (_, res) => {
+function buildBackup() {
   const articles = db.prepare('SELECT * FROM articles').all();
   const spools = db.prepare('SELECT * FROM filament_spools').all();
   const spoolHistory = db.prepare('SELECT * FROM spool_print_history').all();
@@ -334,20 +334,78 @@ app.get('/api/backup', (_, res) => {
   const settingsRows = db.prepare('SELECT key,value FROM app_settings').all();
   const settings = {};
   settingsRows.forEach(r => { try { settings[r.key] = JSON.parse(r.value); } catch {} });
-
-  res.json({
+  return {
     version: 2,
     exportedAt: new Date().toISOString(),
     settings,
     data: {
-      articles,
-      spools,
-      spoolHistory,
+      articles, spools, spoolHistory,
       products: productsRaw.map(r => ({ ...r, components: parseJSON(r.components), filamentComponents: parseJSON(r.filamentComponents) })),
       history: historyRaw.map(r => ({ ...r, components: parseJSON(r.components), filamentComponents: parseJSON(r.filamentComponents) })),
       templates,
     },
-  });
+  };
+}
+
+app.get('/api/backup', (_, res) => res.json(buildBackup()));
+
+// ── BACKUP AUTOMATIQUE ────────────────────────────────────────────────────────
+const BACKUP_DIR = process.env.BACKUP_DIR || path.join(__dirname, '..', 'backups');
+const BACKUP_KEEP = 14; // garde les 14 derniers backups
+
+function writeDailyBackup() {
+  try {
+    fs.mkdirSync(BACKUP_DIR, { recursive: true });
+    const date = new Date().toISOString().slice(0, 10);
+    const file = path.join(BACKUP_DIR, `fila2pro-backup-${date}.json`);
+    fs.writeFileSync(file, JSON.stringify(buildBackup(), null, 2));
+    // Purge des anciens
+    const files = fs.readdirSync(BACKUP_DIR).filter(f => f.startsWith('fila2pro-backup-') && f.endsWith('.json')).sort();
+    while (files.length > BACKUP_KEEP) {
+      fs.unlinkSync(path.join(BACKUP_DIR, files.shift()));
+    }
+    console.log(`[backup] sauvegarde écrite : ${file}`);
+  } catch (e) {
+    console.error('[backup] échec :', e.message);
+  }
+}
+
+function scheduleDailyBackup() {
+  // Première sauvegarde au démarrage, puis chaque jour à 03:00
+  writeDailyBackup();
+  const now = new Date();
+  const next = new Date(now);
+  next.setHours(3, 0, 0, 0);
+  if (next <= now) next.setDate(next.getDate() + 1);
+  const msUntil = next - now;
+  setTimeout(() => {
+    writeDailyBackup();
+    setInterval(writeDailyBackup, 24 * 60 * 60 * 1000);
+  }, msUntil);
+  console.log(`[backup] prochaine sauvegarde auto à ${next.toLocaleString('fr-FR')}`);
+}
+
+// Liste des sauvegardes disponibles
+app.get('/api/backups', (_, res) => {
+  try {
+    fs.mkdirSync(BACKUP_DIR, { recursive: true });
+    const files = fs.readdirSync(BACKUP_DIR)
+      .filter(f => f.startsWith('fila2pro-backup-') && f.endsWith('.json'))
+      .map(f => {
+        const st = fs.statSync(path.join(BACKUP_DIR, f));
+        return { name: f, size: st.size, date: st.mtime.toISOString() };
+      })
+      .sort((a, b) => b.name.localeCompare(a.name));
+    res.json({ dir: BACKUP_DIR, count: files.length, files });
+  } catch (e) {
+    res.json({ dir: BACKUP_DIR, count: 0, files: [], error: e.message });
+  }
+});
+
+// Déclencher une sauvegarde manuelle vers le dossier serveur
+app.post('/api/backups/run', (_, res) => {
+  writeDailyBackup();
+  res.json({ ok: true });
 });
 
 app.post('/api/restore', (req, res) => {
@@ -383,4 +441,5 @@ app.get('*', (_, res) => {
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`FILA2PRO server running on port ${PORT}`);
   console.log(`Database: ${DB_PATH}`);
+  scheduleDailyBackup();
 });

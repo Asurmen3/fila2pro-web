@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useApp } from '../context/AppContext';
 import * as api from '../api';
-import { Download, Upload, Trash2, Zap, Settings2, CheckCircle, Smartphone } from 'lucide-react';
+import { Download, Upload, Trash2, Zap, Settings2, CheckCircle, Smartphone, HardDriveDownload, Clock } from 'lucide-react';
 import type { AppSettings } from '../types';
+import type { BackupFile } from '../api';
 import { useInstallPrompt } from '../hooks/useInstallPrompt';
 
 function fmt(n: number, d = 2) { return n.toLocaleString('fr-FR', { minimumFractionDigits: d, maximumFractionDigits: d }); }
@@ -16,6 +17,21 @@ export default function Settings() {
   const [importing, setImporting] = useState(false);
   const [exporting, setExporting] = useState(false);
   const [msg, setMsg]         = useState('');
+  const [backups, setBackups] = useState<BackupFile[]>([]);
+  const [backupDir, setBackupDir] = useState('');
+  const [runningBackup, setRunningBackup] = useState(false);
+
+  async function loadBackups() {
+    try { const r = await api.backup.list(); setBackups(r.files); setBackupDir(r.dir); } catch { /* ignore */ }
+  }
+  useEffect(() => { loadBackups(); }, []);
+
+  async function handleBackupNow() {
+    setRunningBackup(true);
+    try { await api.backup.runNow(); await loadBackups(); setMsg('✅ Sauvegarde serveur effectuée'); }
+    catch { setMsg('❌ Échec de la sauvegarde'); }
+    finally { setRunningBackup(false); setTimeout(() => setMsg(''), 4000); }
+  }
 
   function setField<K extends keyof AppSettings>(k: K, v: AppSettings[K]) {
     setForm(prev => ({ ...prev, [k]: v }));
@@ -137,6 +153,36 @@ export default function Settings() {
         <motion.button className="btn-primary flex items-center gap-2 w-full justify-center" onClick={handleExport} disabled={exporting} whileTap={{ scale:0.97 }}>
           <Download size={15} />{exporting ? 'Export en cours…' : 'Exporter le backup JSON'}
         </motion.button>
+      </div>
+
+      {/* Sauvegarde automatique */}
+      <div className="glass-card p-5">
+        <div className="flex items-center gap-2 mb-3"><HardDriveDownload size={16} style={{ color:'#00FF88' }} /><span className="text-sm font-bold text-white">Sauvegarde automatique</span></div>
+        <p className="text-xs text-slate-400 mb-4">
+          Une sauvegarde est créée <strong className="text-slate-300">automatiquement chaque nuit (3h)</strong> sur votre TrueNAS, dans le dossier <code className="text-[11px]" style={{ color:'#00D9FF' }}>{backupDir || '/app/backups'}</code>. Les 14 dernières sont conservées.
+        </p>
+
+        <div className="flex items-center gap-3 mb-4">
+          <div className="glass-card px-4 py-2.5 flex-1">
+            <div className="text-xl font-bold" style={{ color:'#00FF88', fontFamily:'Space Grotesk' }}>{backups.length}</div>
+            <div className="text-xs text-slate-500">Sauvegardes</div>
+          </div>
+          <motion.button className="btn-secondary flex items-center gap-2 whitespace-nowrap" onClick={handleBackupNow} disabled={runningBackup} whileTap={{ scale:0.97 }}>
+            <HardDriveDownload size={14} />{runningBackup ? 'En cours…' : 'Sauvegarder maintenant'}
+          </motion.button>
+        </div>
+
+        {backups.length > 0 && (
+          <div className="space-y-1.5 max-h-48 overflow-y-auto">
+            {backups.slice(0, 8).map(b => (
+              <div key={b.name} className="flex items-center gap-2 px-3 py-2 rounded-lg" style={{ background:'rgba(0,217,255,0.04)' }}>
+                <Clock size={12} className="text-slate-500 flex-shrink-0" />
+                <span className="text-xs text-white truncate flex-1">{b.name.replace('fila2pro-backup-','').replace('.json','')}</span>
+                <span className="text-[11px] text-slate-500 flex-shrink-0">{(b.size/1024).toFixed(0)} Ko</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="glass-card p-5">
