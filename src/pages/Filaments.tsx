@@ -61,6 +61,12 @@ export default function Filaments() {
   // Stock faible = peu de matière ET pas de bobine de secours
   const lowStock    = spools.filter(s => s.currentWeight < 200 && (s.quantity ?? 1) <= 1);
   const usedMaterials = [...new Set(spools.map(s => s.material))];
+  // Valeur du stock = prix au gramme × grammes restants (bobine en cours + bobines de secours)
+  const totalValue = spools.reduce((s, sp) => {
+    const grams = sp.currentWeight + Math.max(0, (sp.quantity ?? 1) - 1) * sp.initialWeight;
+    const pricePerGram = sp.initialWeight > 0 ? sp.price / sp.initialWeight : 0;
+    return s + grams * pricePerGram;
+  }, 0);
 
   function setField<K extends keyof ReturnType<typeof emptyForm>>(k: K, v: ReturnType<typeof emptyForm>[K]) {
     setForm(prev => ({ ...prev, [k]: v }));
@@ -167,12 +173,13 @@ export default function Filaments() {
   return (
     <div className="space-y-4">
       {/* Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {[
           { label:'Bobines en stock',     value:totalSpoolCount,                            color:'#00D9FF' },
-          { label:'Stock faible (<200g)', value:lowStock.length,                            color:lowStock.length>0?'#FF8C00':'#00FF88' },
+          { label:'Valeur du stock',      value:`${fmt(totalValue,2)} €`,                   color:'#00FF88' },
           { label:'Poids total',          value:`${fmt(totalWeight/1000,2)} kg`,            color:'#8B5CF6' },
-          { label:'Matériaux',            value:usedMaterials.length,                       color:'#00FF88' },
+          { label:'Stock faible (<200g)', value:lowStock.length,                            color:lowStock.length>0?'#FF8C00':'#00FF88' },
+          { label:'Matériaux',            value:usedMaterials.length,                       color:'#94a3b8' },
         ].map(s => (
           <div key={s.label} className="glass-card px-4 py-3">
             <div className="text-xl font-bold" style={{ color:s.color, fontFamily:'Space Grotesk' }}>{s.value}</div>
