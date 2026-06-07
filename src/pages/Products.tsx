@@ -49,8 +49,10 @@ export default function Products() {
   }).filter(Boolean);
 
   const materialCost   = resolvedComponents.reduce((s, c) => s + c.totalCost, 0) + resolvedFilaments.reduce((s, c) => s + c.totalCost, 0);
-  const totalMinutes   = form.printTimeMinutes + form.assemblyTimeMinutes;
-  const laborCost      = (totalMinutes / 60) * form.laborCostPerHour;
+  // Main-d'œuvre = uniquement le temps d'assemblage (travail actif).
+  // Le temps d'impression n'est PAS compté en main-d'œuvre (l'imprimante travaille seule)
+  // — il sert seulement au calcul de l'électricité.
+  const laborCost      = (form.assemblyTimeMinutes / 60) * form.laborCostPerHour;
   const elecCost       = calcElectricityCost(form.printTimeMinutes, elecSettings);
   const productionCost = materialCost + laborCost + elecCost + form.fixedCosts;
   const suggestedPrice = productionCost * (1 + form.marginPercent / 100);
@@ -291,8 +293,8 @@ export default function Products() {
 
               {/* Params */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-5">
-                <div><label className="label">Impression (min)</label><input className="input-field" type="number" min="0" value={form.printTimeMinutes||''} onChange={e=>setField('printTimeMinutes',parseInt(e.target.value)||0)}/></div>
-                <div><label className="label">Assemblage (min)</label><input className="input-field" type="number" min="0" value={form.assemblyTimeMinutes||''} onChange={e=>setField('assemblyTimeMinutes',parseInt(e.target.value)||0)}/></div>
+                <div><label className="label">Impression (min) · élec.</label><input className="input-field" type="number" min="0" value={form.printTimeMinutes||''} onChange={e=>setField('printTimeMinutes',parseInt(e.target.value)||0)}/></div>
+                <div><label className="label">Assemblage (min) · m.o.</label><input className="input-field" type="number" min="0" value={form.assemblyTimeMinutes||''} onChange={e=>setField('assemblyTimeMinutes',parseInt(e.target.value)||0)}/></div>
                 <div><label className="label">Taux horaire (€/h)</label><input className="input-field" type="number" step="0.5" min="0" value={form.laborCostPerHour||''} onChange={e=>setField('laborCostPerHour',parseFloat(e.target.value)||0)}/></div>
                 <div><label className="label">Frais fixes (€)</label><input className="input-field" type="number" step="0.1" min="0" value={form.fixedCosts||''} onChange={e=>setField('fixedCosts',parseFloat(e.target.value)||0)}/></div>
                 <div><label className="label">Marge (%)</label><input className="input-field" type="number" step="1" min="0" value={form.marginPercent||''} onChange={e=>setField('marginPercent',parseFloat(e.target.value)||0)}/></div>
