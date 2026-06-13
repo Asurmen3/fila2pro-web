@@ -1,8 +1,8 @@
 # FILA2PRO — reverse proxy HTTPS via Caddy
 # Certificat local auto-généré (CA interne Caddy)
 #
-# Adresse principale : https://fila2pro.lan:9443
-#   → nécessite une règle DNS dans le routeur : fila2pro.lan → 192.168.1.200
+# Adresse principale : https://stock.lan:9443
+#   → nécessite une règle DNS dans Pi-hole : stock.lan → 192.168.1.200
 # Adresse de secours : https://192.168.1.200.nip.io:9443 (fonctionne sans DNS)
 #
 # Le certificat est émis par la même CA locale, déjà installée sur vos appareils.
@@ -11,7 +11,7 @@
 	auto_https disable_redirects
 }
 
-https://fila2pro.lan:9443, https://192.168.1.200.nip.io:9443 {
+https://stock.lan:9443, https://fila2pro.lan:9443, https://192.168.1.200.nip.io:9443 {
 	tls internal
 	reverse_proxy fila2pro:8080
 }
