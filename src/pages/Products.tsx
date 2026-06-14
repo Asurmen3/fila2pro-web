@@ -14,6 +14,8 @@ interface ProductForm {
   name: string; description: string;
   printTimeMinutes: number; assemblyTimeMinutes: number;
   laborCostPerHour: number; fixedCosts: number; marginPercent: number;
+  priceMode: 'margin' | 'price';   // 'margin' = marge fixée, 'price' = prix fixé
+  customPrice: number;             // prix de vente souhaité (mode 'price')
   components: Array<{ articleId: number; quantity: number }>;
   filamentComponents: Array<{ spoolId: number; weightGrams: number }>;
 }
@@ -22,6 +24,7 @@ const emptyForm = (): ProductForm => ({
   name: '', description: '',
   printTimeMinutes: 0, assemblyTimeMinutes: 0,
   laborCostPerHour: 15, fixedCosts: 0.5, marginPercent: 40,
+  priceMode: 'margin', customPrice: 0,
   components: [], filamentComponents: [],
 });
 
@@ -55,7 +58,11 @@ export default function Products() {
   const laborCost      = (form.assemblyTimeMinutes / 60) * form.laborCostPerHour;
   const elecCost       = calcElectricityCost(form.printTimeMinutes, elecSettings);
   const productionCost = materialCost + laborCost + elecCost + form.fixedCosts;
-  const suggestedPrice = productionCost * (1 + form.marginPercent / 100);
+  // Prix fixé manuellement → la marge se déduit. Sinon prix = coût × (1 + marge).
+  const suggestedPrice = form.priceMode === 'price'
+    ? form.customPrice
+    : productionCost * (1 + form.marginPercent / 100);
+  const effectiveMargin = productionCost > 0 ? (suggestedPrice / productionCost - 1) * 100 : 0;
   const grossProfit    = suggestedPrice - productionCost;
 
   function setField<K extends keyof ProductForm>(k: K, v: ProductForm[K]) { setForm(prev => ({ ...prev, [k]: v })); }
@@ -78,8 +85,8 @@ export default function Products() {
     if (!form.name.trim() || (resolvedComponents.length === 0 && resolvedFilaments.length === 0)) return;
     setSaving(true);
     const now = new Date().toISOString();
-    const prod = await api.products.create({ name: form.name, description: form.description, components: resolvedComponents, filamentComponents: resolvedFilaments, printTimeMinutes: form.printTimeMinutes, assemblyTimeMinutes: form.assemblyTimeMinutes, laborCostPerHour: form.laborCostPerHour, fixedCosts: form.fixedCosts, marginPercent: form.marginPercent, materialCost, laborCost, totalCost: productionCost, suggestedPrice, grossProfit, createdAt: new Date() });
-    await api.history.create({ productId: prod.id, productName: form.name, date: now, materialCost, laborCost, totalCost: productionCost, suggestedPrice, grossProfit, marginPercent: form.marginPercent, components: resolvedComponents, filamentComponents: resolvedFilaments });
+    const prod = await api.products.create({ name: form.name, description: form.description, components: resolvedComponents, filamentComponents: resolvedFilaments, printTimeMinutes: form.printTimeMinutes, assemblyTimeMinutes: form.assemblyTimeMinutes, laborCostPerHour: form.laborCostPerHour, fixedCosts: form.fixedCosts, marginPercent: effectiveMargin, materialCost, laborCost, totalCost: productionCost, suggestedPrice, grossProfit, createdAt: new Date() });
+    await api.history.create({ productId: prod.id, productName: form.name, date: now, materialCost, laborCost, totalCost: productionCost, suggestedPrice, grossProfit, marginPercent: effectiveMargin, components: resolvedComponents, filamentComponents: resolvedFilaments });
 
     // Deduct stock articles
     for (const comp of resolvedComponents) {
@@ -297,7 +304,41 @@ export default function Products() {
                 <div><label className="label">Assemblage (min) · m.o.</label><input className="input-field" type="number" min="0" value={form.assemblyTimeMinutes||''} onChange={e=>setField('assemblyTimeMinutes',parseInt(e.target.value)||0)}/></div>
                 <div><label className="label">Taux horaire (€/h)</label><input className="input-field" type="number" step="0.5" min="0" value={form.laborCostPerHour||''} onChange={e=>setField('laborCostPerHour',parseFloat(e.target.value)||0)}/></div>
                 <div><label className="label">Frais fixes (€)</label><input className="input-field" type="number" step="0.1" min="0" value={form.fixedCosts||''} onChange={e=>setField('fixedCosts',parseFloat(e.target.value)||0)}/></div>
-                <div><label className="label">Marge (%)</label><input className="input-field" type="number" step="1" min="0" value={form.marginPercent||''} onChange={e=>setField('marginPercent',parseFloat(e.target.value)||0)}/></div>
+              </div>
+
+              {/* Tarification : marge OU prix imposé */}
+              <div className="rounded-xl p-4 mb-5" style={{ background:'rgba(139,92,246,0.05)', border:'1px solid rgba(139,92,246,0.2)' }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <button type="button" onClick={()=>setField('priceMode','margin')}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                    style={form.priceMode==='margin'?{background:'#8B5CF622',color:'#8B5CF6',border:'1px solid #8B5CF644'}:{background:'rgba(255,255,255,0.04)',color:'#64748b',border:'1px solid rgba(255,255,255,0.08)'}}>
+                    Définir une marge
+                  </button>
+                  <button type="button" onClick={()=>setField('priceMode','price')}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                    style={form.priceMode==='price'?{background:'#00D9FF22',color:'#00D9FF',border:'1px solid #00D9FF44'}:{background:'rgba(255,255,255,0.04)',color:'#64748b',border:'1px solid rgba(255,255,255,0.08)'}}>
+                    Fixer le prix de vente
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="label">Marge (%)</label>
+                    <input className="input-field" type="number" step="1" disabled={form.priceMode==='price'}
+                      style={form.priceMode==='price'?{opacity:0.5}:{}}
+                      value={form.priceMode==='price'?effectiveMargin.toFixed(1):(form.marginPercent||'')}
+                      onChange={e=>setField('marginPercent',parseFloat(e.target.value)||0)}/>
+                  </div>
+                  <div>
+                    <label className="label">Prix de vente souhaité (€)</label>
+                    <input className="input-field" type="number" step="0.01" min="0" disabled={form.priceMode==='margin'}
+                      style={form.priceMode==='margin'?{opacity:0.5}:{}}
+                      value={form.priceMode==='margin'?suggestedPrice.toFixed(2):(form.customPrice||'')}
+                      onChange={e=>setField('customPrice',parseFloat(e.target.value)||0)}/>
+                  </div>
+                </div>
+                {form.priceMode==='price' && suggestedPrice>0 && suggestedPrice<productionCost && (
+                  <div className="text-xs mt-2" style={{ color:'#FF2D55' }}>⚠️ Prix inférieur au coût de fabrication — vous vendez à perte.</div>
+                )}
               </div>
 
               {/* Summary */}
