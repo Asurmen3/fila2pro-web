@@ -3,6 +3,7 @@ dist/
 server/data/
 server/mock-local.cjs
 backups/
+deploy.log
 *.db
 *.db-shm
 *.db-wal

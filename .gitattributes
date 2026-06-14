@@ -1,0 +1,6 @@
+# Force les fins de ligne LF pour les scripts/configs exécutés sous Linux (TrueNAS)
+*.sh text eol=lf
+deploy.sh text eol=lf
+Caddyfile text eol=lf
+Dockerfile text eol=lf
+*.cjs text eol=lf
